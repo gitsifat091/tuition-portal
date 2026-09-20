@@ -9,6 +9,8 @@ import { StudentDetailPage } from '../features/admin/StudentDetailPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { WaitingPage } from '../features/auth/WaitingPage'
 import { DashboardPage } from '../features/dashboard/DashboardPage'
+import { AdminSchedulePage } from '../features/schedule/AdminSchedulePage'
+import { SchedulePage } from '../features/schedule/SchedulePage'
 import { HomeRedirect, RequireRole } from './RequireRole'
 
 export const router = createBrowserRouter([
@@ -34,6 +36,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/schedule',
+        element: (
+          <RequireRole roles={['student', 'guardian']}>
+            <SchedulePage />
+          </RequireRole>
+        ),
+      },
+      {
         path: '/admin',
         element: (
           <RequireRole roles={['admin']}>
@@ -45,6 +55,7 @@ export const router = createBrowserRouter([
           { path: 'students/:id', element: <StudentDetailPage /> },
           { path: 'batches', element: <AdminBatchesPage /> },
           { path: 'batches/:id', element: <BatchDetailPage /> },
+          { path: 'schedule', element: <AdminSchedulePage /> },
         ],
       },
     ],

@@ -1,8 +1,9 @@
-// Database types for the tables that exist so far (F1 + F2).
+// Database types for the tables that exist so far (F1, F2, F3).
 // Later you can regenerate this file with:
 //   npx supabase gen types typescript --project-id YOUR-PROJECT-REF > src/lib/types.ts
 
 export type Role = 'admin' | 'student' | 'guardian' | 'pending'
+export type SessionStatus = 'scheduled' | 'cancelled' | 'rescheduled' | 'extra'
 
 export type Database = {
   public: {
@@ -173,11 +174,88 @@ export type Database = {
           },
         ]
       }
+      weekly_slots: {
+        Row: {
+          id: string
+          batch_id: string
+          weekday: number
+          start_time: string
+          end_time: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          batch_id: string
+          weekday: number
+          start_time: string
+          end_time: string
+        }
+        Update: {
+          weekday?: number
+          start_time?: string
+          end_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'weekly_slots_batch_id_fkey'
+            columns: ['batch_id']
+            isOneToOne: false
+            referencedRelation: 'batches'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      class_sessions: {
+        Row: {
+          id: string
+          batch_id: string
+          slot_id: string | null
+          slot_date: string | null
+          starts_at: string
+          ends_at: string
+          status: SessionStatus
+          original_starts_at: string | null
+          note: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          batch_id: string
+          starts_at: string
+          ends_at: string
+          status?: SessionStatus
+          note?: string | null
+        }
+        Update: {
+          starts_at?: string
+          ends_at?: string
+          status?: SessionStatus
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'class_sessions_batch_id_fkey'
+            columns: ['batch_id']
+            isOneToOne: false
+            referencedRelation: 'batches'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'class_sessions_slot_id_fkey'
+            columns: ['slot_id']
+            isOneToOne: false
+            referencedRelation: 'weekly_slots'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: { [_ in never]: never }
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean }
       keepalive: { Args: Record<string, never>; Returns: string }
+      generate_sessions: { Args: { p_weeks?: number; p_batch_id?: string }; Returns: number }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }
@@ -195,3 +273,7 @@ export type Enrollment = Tables['enrollments']['Row']
 export type NewEnrollment = Tables['enrollments']['Insert']
 export type GuardianLink = Tables['guardian_links']['Row']
 export type NewGuardianLink = Tables['guardian_links']['Insert']
+export type WeeklySlot = Tables['weekly_slots']['Row']
+export type NewWeeklySlot = Tables['weekly_slots']['Insert']
+export type ClassSession = Tables['class_sessions']['Row']
+export type NewClassSession = Tables['class_sessions']['Insert']

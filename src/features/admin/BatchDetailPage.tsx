@@ -11,9 +11,10 @@ import {
   useUpdateBatch,
   type BatchDetail,
 } from './api'
+import { WeeklyRoutineCard } from '../schedule/WeeklyRoutineCard'
 import { EnrollmentRow } from './EnrollmentRow'
 
-/** Admin: one batch, its students and their fees. */
+/** Admin: one batch, its students and their fees, and its weekly routine. */
 export function BatchDetailPage() {
   const { id } = useParams()
   const batch = useBatch(id)
@@ -47,6 +48,7 @@ export function BatchDetailPage() {
       </div>
 
       <StudentsCard batch={b} />
+      <WeeklyRoutineCard batch={b} />
       <DetailsCard key={b.id} batch={b} />
     </div>
   )

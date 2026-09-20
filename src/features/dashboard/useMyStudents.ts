@@ -28,7 +28,7 @@ function writeStored(id: string) {
  * The students this account may see (RLS decides): a student's own record,
  * or every linked child for a guardian. Also tracks which one is selected,
  * in the URL (?child=...) with the last choice remembered on this device.
- * Later features (schedule, dues, attendance) read `active` from here.
+ * Schedule (F3) and later features (dues, attendance) read `active` from here.
  */
 export function useMyStudents() {
   const { profile } = useAuth()
@@ -64,4 +64,10 @@ export function useMyStudents() {
   }
 
   return { ...query, students: list, active, setActive }
+}
+
+/** Batches a student can see: active enrollment in an active batch. */
+export function visibleBatchIds(student: MyStudent | null): string[] {
+  if (!student) return []
+  return student.enrollments.filter((e) => e.active && e.batches).map((e) => e.batch_id)
 }

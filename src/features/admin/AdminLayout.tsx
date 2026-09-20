@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router'
 const tabs = [
   { to: '/admin', label: 'Students', isActive: (p: string) => p === '/admin' || p.startsWith('/admin/students') },
   { to: '/admin/batches', label: 'Batches', isActive: (p: string) => p.startsWith('/admin/batches') },
+  { to: '/admin/schedule', label: 'Schedule', isActive: (p: string) => p.startsWith('/admin/schedule') },
 ]
 
 /** Admin area: a tab bar on top, the current admin page below. */

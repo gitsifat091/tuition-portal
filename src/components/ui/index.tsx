@@ -72,7 +72,7 @@ export function Select({ label, hint, id, className, children, ...rest }: Select
   )
 }
 
-type BadgeTone = 'slate' | 'brand' | 'due' | 'paid' | 'cancelled'
+export type BadgeTone = 'slate' | 'brand' | 'due' | 'paid' | 'cancelled' | 'extra'
 
 export function Badge({ tone = 'slate', children }: { tone?: BadgeTone; children: ReactNode }) {
   const styles = {
@@ -81,6 +81,7 @@ export function Badge({ tone = 'slate', children }: { tone?: BadgeTone; children
     due: 'bg-amber-100 text-amber-800',
     paid: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800',
+    extra: 'bg-indigo-100 text-indigo-800',
   }[tone]
   return <span className={cx('inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium', styles)}>{children}</span>
 }
@@ -170,6 +171,43 @@ export function ConfirmDialog({
               {confirmLabel}
             </Button>
           </div>
+        </div>
+      )}
+    </dialog>
+  )
+}
+
+type ModalProps = {
+  open: boolean
+  title: string
+  children: ReactNode
+  onClose: () => void
+}
+
+/** A modal for small forms. Esc closes it. The content brings its own buttons. */
+export function Modal({ open, title, children, onClose }: ModalProps) {
+  const ref = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const dialog = ref.current
+    if (!dialog) return
+    if (open && !dialog.open) dialog.showModal()
+    if (!open && dialog.open) dialog.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
+      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl bg-white p-0 shadow-xl backdrop:bg-slate-900/40"
+    >
+      {open && (
+        <div className="space-y-4 p-5">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          {children}
         </div>
       )}
     </dialog>

@@ -1,9 +1,15 @@
+import { Link, useSearchParams } from 'react-router'
 import { Alert, Badge, Card, Spinner } from '../../components/ui'
 import { formatDate, formatMonth, formatTaka } from '../../lib/format'
+import { todayKey } from '../../lib/time'
+import { useNow } from '../../lib/useNow'
 import { useAuth } from '../auth/AuthProvider'
-import { useMyStudents, type MyStudent } from './useMyStudents'
+import { useUpcomingSessions } from '../schedule/api'
+import { SessionItem } from '../schedule/SessionItem'
+import { ChildSwitcher } from './ChildSwitcher'
+import { useMyStudents, visibleBatchIds, type MyStudent } from './useMyStudents'
 
-/** Student and guardian home. Schedule, dues and the rest are added from F3 onwards. */
+/** Student and guardian home: who, next classes, batches. Dues and the rest arrive from F5 onwards. */
 export function DashboardPage() {
   const { profile } = useAuth()
   const { students, active, setActive, isPending, error } = useMyStudents()
@@ -15,7 +21,7 @@ export function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Welcome{firstName ? `, ${firstName}` : ''}</h1>
-        <p className="text-slate-600">Class schedule, dues and notes will appear here soon.</p>
+        <p className="text-slate-600">Your next classes and batches. Dues and notes will appear here soon.</p>
       </div>
 
       {isPending && <Spinner />}
@@ -29,40 +35,8 @@ export function DashboardPage() {
         <ChildSwitcher students={students} activeId={active?.id} onSelect={setActive} />
       )}
 
+      {active && <NextClasses student={active} />}
       {active && <StudentOverview student={active} showLabel={isGuardianView} />}
-    </div>
-  )
-}
-
-function ChildSwitcher({
-  students,
-  activeId,
-  onSelect,
-}: {
-  students: MyStudent[]
-  activeId: string | undefined
-  onSelect: (id: string) => void
-}) {
-  return (
-    <div role="tablist" aria-label="Choose a child" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-      {students.map((s) => {
-        const selected = s.id === activeId
-        return (
-          <button
-            key={s.id}
-            role="tab"
-            aria-selected={selected}
-            onClick={() => onSelect(s.id)}
-            className={[
-              'shrink-0 rounded-full px-4 py-2 text-sm font-medium transition font-bangla',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700',
-              selected ? 'bg-brand-700 text-white' : 'bg-white text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50',
-            ].join(' ')}
-          >
-            {s.full_name}
-          </button>
-        )
-      })}
     </div>
   )
 }
@@ -104,5 +78,43 @@ function StudentOverview({ student: s, showLabel }: { student: MyStudent; showLa
         )}
       </Card>
     </div>
+  )
+}
+
+/** The next two classes (or a cancellation among them), with a link to the full schedule. */
+function NextClasses({ student }: { student: MyStudent }) {
+  const [params] = useSearchParams()
+  const batchIds = visibleBatchIds(student)
+  const sessions = useUpcomingSessions(batchIds, todayKey(), 14)
+  const now = useNow()
+
+  if (batchIds.length === 0) return null
+
+  const next = (sessions.data ?? []).filter((s) => new Date(s.ends_at).getTime() > now).slice(0, 2)
+  const child = params.get('child')
+  const scheduleLink = child ? `/schedule?child=${child}` : '/schedule'
+
+  return (
+    <Card className="space-y-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-sm text-slate-500">Next classes</p>
+        <Link to={scheduleLink} className="text-sm font-medium text-brand-700 hover:underline">
+          Full schedule &rsaquo;
+        </Link>
+      </div>
+      {sessions.isPending ? (
+        <Spinner />
+      ) : sessions.error ? (
+        <Alert tone="error">{sessions.error.message}</Alert>
+      ) : next.length === 0 ? (
+        <p className="text-slate-600">No classes in the next 2 weeks.</p>
+      ) : (
+        <div className="space-y-2">
+          {next.map((s) => (
+            <SessionItem key={s.id} session={s} showDate showBatch={batchIds.length > 1} />
+          ))}
+        </div>
+      )}
+    </Card>
   )
 }
