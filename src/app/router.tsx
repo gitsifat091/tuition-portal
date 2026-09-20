@@ -1,7 +1,11 @@
 import { createBrowserRouter, Link } from 'react-router'
 import { AppShell } from '../components/layout/AppShell'
 import { Card } from '../components/ui'
+import { AdminBatchesPage } from '../features/admin/AdminBatchesPage'
+import { AdminLayout } from '../features/admin/AdminLayout'
 import { AdminStudentsPage } from '../features/admin/AdminStudentsPage'
+import { BatchDetailPage } from '../features/admin/BatchDetailPage'
+import { StudentDetailPage } from '../features/admin/StudentDetailPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { WaitingPage } from '../features/auth/WaitingPage'
 import { DashboardPage } from '../features/dashboard/DashboardPage'
@@ -33,9 +37,15 @@ export const router = createBrowserRouter([
         path: '/admin',
         element: (
           <RequireRole roles={['admin']}>
-            <AdminStudentsPage />
+            <AdminLayout />
           </RequireRole>
         ),
+        children: [
+          { index: true, element: <AdminStudentsPage /> },
+          { path: 'students/:id', element: <StudentDetailPage /> },
+          { path: 'batches', element: <AdminBatchesPage /> },
+          { path: 'batches/:id', element: <BatchDetailPage /> },
+        ],
       },
     ],
   },
